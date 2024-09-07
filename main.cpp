@@ -22,10 +22,10 @@ int StringCompare(const char* firstString, const char* secondString){
 
     for (int i = 0; i < STR_LENGTH; i++){
         if (CharCompare(firstString[i], secondString[i]) > 0){
-            return 1;
+            return 1; // first bigger
         }
         else if (CharCompare(firstString[i], secondString[i]) < 0) {
-            return -1;
+            return -1; // second bigger
         }
     }
 
@@ -48,7 +48,7 @@ void BubbleSortStrings(char sourceText[][STR_LENGTH]){
     ASSERT(sourceText != NULL);
 
     for (int first = 0; first < STR_NUM; first++){
-        for (int second = 0; second < first; second++){
+        for (int second = 0; second < STR_NUM - 1; second++){
             if (StringCompare(sourceText[second], sourceText[second + 1]) > 0){
                 SwapStrings(sourceText[second], sourceText[second + 1]);
             }
@@ -56,9 +56,21 @@ void BubbleSortStrings(char sourceText[][STR_LENGTH]){
     }
 }
 
+void PrintTextDebug(const char sourceText[][STR_LENGTH]){
+    for (int i = 0; i < STR_NUM; i++){
+        for (int j = 0; j < STR_LENGTH; j++){
+            if (j <= 2){
+                printf("%c(%d)", sourceText[i][j], (int)sourceText[i][j]);
+            } else
+            printf("%c", sourceText[i][j]);
+        }
+        printf("\n\n");
+    }
+}
+
 void PrintText(const char sourceText[][STR_LENGTH]){
     for (int i = 0; i < STR_NUM; i++){
-        printf("%d: %s\n",i + 1, sourceText[i]);
+        printf("%s\n", sourceText[i]);
     }
 }
 
@@ -75,9 +87,17 @@ int main(){
                                                     {    "But God, how deadly dull to sample"       },
                                                     {    "sickroom attendance night and day"        },
                                                     {    "and never stir a foot away!"              }};
+    /*char sourceOnegin[STR_NUM][STR_LENGTH] = {      {    "b"   },
+                                                    {    "a"       },
+                                                    {    "c"    },
+                                                    {    "v"       },
+                                                    {    "r"       },
+                                                    {    "a"       },
+                                                    {    "f"        },
+                                                    {    "d"              }};*/
 
     BubbleSortStrings(&sourceOnegin[0]);
-    PrintText(&sourceOnegin[0]);
+    PrintText(sourceOnegin);
 
     return 0;
 }
