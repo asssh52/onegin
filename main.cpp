@@ -51,7 +51,7 @@ void SwapStrings(char* firstString, char* secondString){
 
 }
 
-void BubbleSortStrings(char sourceText[][STR_LENGTH]){
+void BubbleSortStrings(char** sourceText){
     ASSERT(sourceText != NULL);
 
     for (int first = 0; first < STR_NUM; first++){
@@ -63,7 +63,7 @@ void BubbleSortStrings(char sourceText[][STR_LENGTH]){
     }
 }
 
-void PrintTextDebug(const char sourceText[][STR_LENGTH]){
+void PrintTextDebug(const char** sourceText){
     for (int i = 0; i < STR_NUM; i++){
         for (int j = 0; j < STR_LENGTH; j++){
             if (j <= 2){
@@ -75,7 +75,7 @@ void PrintTextDebug(const char sourceText[][STR_LENGTH]){
     }
 }
 
-void PrintText(const char sourceText[][STR_LENGTH]){
+void PrintText(const char** sourceText){
     for (int i = 0; i < STR_NUM; i++){
         printf("%s\n", sourceText[i]);
     }
@@ -95,8 +95,14 @@ int main(){
                                                     {    "sickroom attendance night and day"        },
                                                     {    "and never stir a foot away!"              }};
 
-    BubbleSortStrings(&sourceOnegin[0]);
-    PrintText(sourceOnegin);
+    char* sourcePointer[STR_NUM] = {};
+
+    for (int i = 0; i < STR_NUM; i++){
+        sourcePointer[i] = sourceOnegin[i];
+    }
+
+    BubbleSortStrings(sourcePointer);
+    PrintText((const char**)sourcePointer);
 
     return 0;
 }
