@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #define COLOR_RESET         "\x1b[0m"
 #define COLOR_RED          "\x1b[31m"
@@ -14,21 +15,27 @@ enum sizes{
 
 
 int CharCompare(char firstChar, char secondChar){
-    return firstChar - secondChar;
+    return tolower(firstChar) - tolower(secondChar);
 }
 
 int StringCompare(const char* firstString, const char* secondString){
     ASSERT(firstString != NULL && secondString != NULL);
 
-    for (int i = 0; i < STR_LENGTH; i++){
-        if (CharCompare(firstString[i], secondString[i]) > 0){
-            return 1; // first bigger
+    for (int i = 0, j = 0; i < STR_LENGTH; i++, j++){
+        while(ispunct(firstString[i])){
+            i++;
         }
-        else if (CharCompare(firstString[i], secondString[i]) < 0) {
-            return -1; // second bigger
+        while(ispunct(secondString[j])){
+            j++;
+        }
+
+        if (CharCompare(firstString[i], secondString[j]) > 0){
+                return 1; // first bigger
+        }
+        else if (CharCompare(firstString[i], secondString[j]) < 0) {
+                return -1; // second bigger
         }
     }
-
     return 0;
 }
 
@@ -87,14 +94,6 @@ int main(){
                                                     {    "But God, how deadly dull to sample"       },
                                                     {    "sickroom attendance night and day"        },
                                                     {    "and never stir a foot away!"              }};
-    /*char sourceOnegin[STR_NUM][STR_LENGTH] = {      {    "b"   },
-                                                    {    "a"       },
-                                                    {    "c"    },
-                                                    {    "v"       },
-                                                    {    "r"       },
-                                                    {    "a"       },
-                                                    {    "f"        },
-                                                    {    "d"              }};*/
 
     BubbleSortStrings(&sourceOnegin[0]);
     PrintText(sourceOnegin);
