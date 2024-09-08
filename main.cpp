@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <sys/stat.h>
 
 #define COLOR_RESET         "\x1b[0m"
 #define COLOR_RED          "\x1b[31m"
@@ -15,6 +16,7 @@ enum sizes{
 
 
 
+
 int CharCompare(char firstChar, char secondChar){
     return tolower(firstChar) - tolower(secondChar);
 }
@@ -22,7 +24,7 @@ int CharCompare(char firstChar, char secondChar){
 int StringCompare(const char* firstString, const char* secondString){
     ASSERT(firstString != NULL && secondString != NULL);
 
-    for (int i = 0, j = 0; i < STR_LENGTH; i++, j++){
+    for (int i = 0, j = 0; i < STR_LENGTH; i++, j++){ // size избыточен?
         while(ispunct(firstString[i]) || isspace(firstString[i])){
             i++;
         }
@@ -118,9 +120,11 @@ void CopyContent(char** origin, char** output, size_t size){ //dont need
     }
 }
 
-void PrintText(const char** sourceText){
+void PrintText(const char** sourceText, size_t size){
+    ASSERT(sourceText != nullptr);
+
     printf("%c", sourceText[0][0]);
-    for (int i = 0; i < STR_NUM; i++){
+    for (int i = 0; i < size; i++){
         for (int j = 1; sourceText[i][j] != '\n' && sourceText[i][j] != EOF; j++){
             printf("%c", sourceText[i][j]);
         }
@@ -141,25 +145,49 @@ void PrintTextDebug(const char** sourceText){
     }
 }
 
+void CountLines(char* buffer, size_t* numberLines){
+    size_t counter = 0;
+    for (int i = 0; buffer[i] != EOF; i++){
+        if (buffer[i] == '\n'){
+            counter++;
+        }
+    }
+    *numberLines = counter;
+}
+
 int main(){
 
     const char* sourceFile = "onegin.txt";
     FILE* sourceFileLink = fopen(sourceFile, "r");
+    size_t numLines = 0;
 
-    void* bufferPointer = calloc(FILE_SIZE, sizeof(char));
-    char** originalTextPointer = (char**)calloc(STR_NUM + 1, sizeof(char*)); // что здесь происходит???
+    struct stat st;
+    stat(sourceFile, &st);
+    size_t fileSize = st.st_size;
+
+    printf("%lu\n", fileSize); // как узнать количество строк в файле?
+
+    void* bufferPointer = calloc(fileSize, sizeof(char)); //выделение памяти для буфера
 
     ASSERT(sourceFileLink != NULL && bufferPointer != NULL);
-    fread(bufferPointer, sizeof(char), FILE_SIZE, sourceFileLink);
+    fread(bufferPointer, sizeof(char), fileSize, sourceFileLink); // чтение в буфер
+    ((char*)bufferPointer)[fileSize] = -1; //фиксит countLines
 
-    SplitText((char*)bufferPointer, (char**)originalTextPointer);
+    CountLines((char*)bufferPointer, &numLines); // счёт '\n'
+    printf("%lu\n", numLines);
 
-    char** textSortedPointer = (char**)calloc(STR_NUM + 1, sizeof(char*));
-    CopyContent(originalTextPointer, textSortedPointer, STR_NUM + 1);
+    char** originalTextPointer = (char**)calloc(numLines + 1, sizeof(char*)); // (char**)!=(сhar*)???
 
-    PrintText((const char**)textSortedPointer);
-    BubbleSortStrings(textSortedPointer, STR_NUM);
-    PrintText((const char**)textSortedPointer);
+
+
+    SplitText((char*)bufferPointer, (char**)originalTextPointer); // разделение буфера по '\n'
+
+    char** textSortedPointer = (char**)calloc(numLines + 1, sizeof(char*)); // отсортированные указатели
+    CopyContent(originalTextPointer, textSortedPointer, numLines + 1);
+
+    PrintText((const char**)textSortedPointer, numLines);
+    BubbleSortStrings(textSortedPointer, numLines);
+    PrintText((const char**)textSortedPointer, numLines);
 
     /*//debug
     //printf("%d\n", StringCompare(textSortedPointer[12], textSortedPointer[13]));

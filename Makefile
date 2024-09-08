@@ -16,7 +16,7 @@ CXXFLAGS = -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-l
 CXX = clang++
 all: main
 
-main: main.o
+main: main.o onegin.txt
 	$(CXX) main.o $(CXXFLAGS) -o main && clear && ./main
 
 main.o: main.cpp
