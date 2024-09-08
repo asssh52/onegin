@@ -9,7 +9,7 @@
                                             __LINE__, __FILE__, __func__); abort();}
 enum sizes{
     STR_LENGTH = 60,
-    STR_NUM = 8,
+    STR_NUM = 14,
     FILE_SIZE = 600
 };
 
@@ -23,10 +23,10 @@ int StringCompare(const char* firstString, const char* secondString){
     ASSERT(firstString != NULL && secondString != NULL);
 
     for (int i = 0, j = 0; i < STR_LENGTH; i++, j++){
-        while(ispunct(firstString[i])){
+        while(ispunct(firstString[i]) || isspace(firstString[i])){
             i++;
         }
-        while(ispunct(secondString[j])){
+        while(ispunct(secondString[j]) || isspace(secondString[j])){
             j++;
         }
 
@@ -40,7 +40,30 @@ int StringCompare(const char* firstString, const char* secondString){
     return 0;
 }
 
-void SwapStrings(char* firstString, char* secondString){
+int StringCompareDebug(const char* firstString, const char* secondString){
+    ASSERT(firstString != NULL && secondString != NULL);
+
+    for (int i = 0, j = 0; i < STR_LENGTH; i++, j++){
+        while(ispunct(firstString[i]) || isspace(firstString[i])){
+            i++;
+        }
+        while(ispunct(secondString[j]) || isspace(secondString[j])){
+            j++;
+        }
+
+        if (CharCompare(firstString[i], secondString[j]) > 0){
+            printf("i:%d ch:%c(%d) \nj:%d ch:%c(%d)", i, firstString[i], firstString[i], j, secondString[j], secondString[j]);
+            return 1; // first bigger
+        }
+        else if (CharCompare(firstString[i], secondString[j]) < 0) {
+                printf("i:%d ch:%c(%d) \nj:%d ch:%c(%d)", i, firstString[i], firstString[i], j, secondString[j], secondString[j]);
+                return -1; // second bigger
+        }
+    }
+    return 0;
+}
+
+void SwapStrings(char* firstString, char* secondString){ // dont need
     ASSERT(firstString != NULL && secondString != NULL);
     char temp;
 
@@ -52,47 +75,69 @@ void SwapStrings(char* firstString, char* secondString){
 
 }
 
-void BubbleSortStrings(char** sourceText){
+void SwapStringPointers(char** firstString, char** secondString){
+    ASSERT(firstString != NULL && secondString != NULL);
+    char* temp = nullptr;
+
+    temp = *firstString;
+    *firstString = *secondString;
+    *secondString = temp;
+}
+
+void BubbleSortStrings(char** sourceText, size_t size){
     ASSERT(sourceText != NULL);
 
-    for (int first = 0; first < STR_NUM; first++){
-        for (int second = 0; second < STR_NUM - 1; second++){
+    for (int first = 0; first < size; first++){
+        for (int second = 0; second < size - 1; second++){
             if (StringCompare(sourceText[second], sourceText[second + 1]) > 0){
-                SwapStrings(sourceText[second], sourceText[second + 1]);
+                SwapStringPointers(&sourceText[second], &sourceText[second + 1]);
             }
         }
     }
 }
 
 void SplitText(char* buffer, char** storage){
+    ASSERT(buffer != nullptr && storage != nullptr)
+
     int lineCounter = 0;
-    *storage = buffer; // mem start
+    *storage = buffer;
 
     for (int i = 0; buffer[i] != EOF; i++){
         if (buffer[i] == '\n'){
             lineCounter++;
-            printf("%lu ", (size_t)(buffer + i));
             *(storage + lineCounter) = (char*)((size_t)buffer + i);
         }
     }
-    //printf("%d\n", lineCounter);
 }
 
-void PrintTextDebug(const char** sourceText){
-    for (int i = 0; i < STR_NUM; i++){
-        for (int j = 0; j < STR_LENGTH; j++){
-            if (j <= 2){
-                printf("%c(%d)", sourceText[i][j], (int)sourceText[i][j]);
-            } else
-            printf("%c", sourceText[i][j]);
-        }
-        printf("\n\n");
+void CopyContent(char** origin, char** output, size_t size){ //dont need
+    ASSERT(origin != nullptr && output != nullptr)
+
+    for (int i = 0; i < size; i++){
+        output[i] = origin[i];
     }
 }
 
 void PrintText(const char** sourceText){
+    printf("%c", sourceText[0][0]);
     for (int i = 0; i < STR_NUM; i++){
-        printf("%s\n", sourceText[i]);
+        for (int j = 1; sourceText[i][j] != '\n' && sourceText[i][j] != EOF; j++){
+            printf("%c", sourceText[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+void PrintTextDebug(const char** sourceText){
+    printf("%c", sourceText[0][0]);
+    for (int i = 0; i < STR_NUM; i++){
+        for (int j = 1; sourceText[i][j] != '\n' && sourceText[i][j] != EOF; j++){
+            if (4 <= j && j <= 7){
+                printf("(<%c>'%d')", tolower(sourceText[i][j]), tolower(sourceText[i][j]));
+            } else
+            printf("%c", sourceText[i][j]);
+        }
+        printf("\n");
     }
 }
 
@@ -101,43 +146,30 @@ int main(){
     const char* sourceFile = "onegin.txt";
     FILE* sourceFileLink = fopen(sourceFile, "r");
 
-    char sourceOnegin[STR_NUM][STR_LENGTH] = {      {    "``My uncle -- high ideals inspire him;"   },
-                                                    {    "but when past joking he fell sick,"       },
-                                                    {    "he really forced one to admire him --"    },
-                                                    {    "and never played a shrewder trick."       },
-                                                    {    "Let others learn from his example!"       },
-                                                    {    "But God, how deadly dull to sample"       },
-                                                    {    "sickroom attendance night and day"        },
-                                                    {    "and never stir a foot away!"              }};
-
-    char* sourcePointer[STR_NUM] = {};
-
-    for (int i = 0; i < STR_NUM; i++){
-        sourcePointer[i] = sourceOnegin[i];
-    }
-
     void* bufferPointer = calloc(FILE_SIZE, sizeof(char));
-    char** textPointer = (char**)calloc(STR_NUM + 1, sizeof(char*)); // что здесь происходит???
+    char** originalTextPointer = (char**)calloc(STR_NUM + 1, sizeof(char*)); // что здесь происходит???
 
     ASSERT(sourceFileLink != NULL && bufferPointer != NULL);
     fread(bufferPointer, sizeof(char), FILE_SIZE, sourceFileLink);
 
-    SplitText((char*)bufferPointer, (char**)textPointer);
+    SplitText((char*)bufferPointer, (char**)originalTextPointer);
 
-    printf("\n\n");
-    for (int i = 0; i < STR_NUM; i++){
-        printf("%lu \n", *(textPointer + i));
-    }
+    char** textSortedPointer = (char**)calloc(STR_NUM + 1, sizeof(char*));
+    CopyContent(originalTextPointer, textSortedPointer, STR_NUM + 1);
 
-    printf("%d\n", *(textPointer + 2) - *(textPointer + 0));
+    PrintText((const char**)textSortedPointer);
+    BubbleSortStrings(textSortedPointer, STR_NUM);
+    PrintText((const char**)textSortedPointer);
 
-    for (int i = 0; i < *(textPointer + 2) - *(textPointer + 0); i++){
-        printf("%c'%d'", *(char*)((size_t)bufferPointer + i), *(char*)((size_t)bufferPointer + i));
-    }
+    /*//debug
+    //printf("%d\n", StringCompare(textSortedPointer[12], textSortedPointer[13]));
 
-    //BubbleSortStrings(sourcePointer);
-    //PrintText((const char**)sourcePointer);
+    char * first =  "     ``My uncle -- high ideals inspire him;";
+    char * second = "     \"When will the devil come for you?\"''";
+    printf("%d", StringCompareDebug(textSortedPointer[0], textSortedPointer[13]));
 
-    //создать "массив чтения" || менять указатели на строки
+
+
+    //debug*/
     return 0;
 }
