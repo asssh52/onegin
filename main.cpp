@@ -14,6 +14,11 @@ enum sizes{
     FILE_SIZE = 600
 };
 
+typedef struct string{
+    char* pointer;
+    size_t length;
+} string;
+
 
 
 
@@ -77,22 +82,22 @@ void SwapStrings(char* firstString, char* secondString){ // dont need
 
 }
 
-void SwapStringPointers(char** firstString, char** secondString){
+void SwapStringPointers(string* firstString, string* secondString){
     ASSERT(firstString != NULL && secondString != NULL);
-    char* temp = nullptr;
+    string temp = {0,0};
 
     temp = *firstString;
     *firstString = *secondString;
     *secondString = temp;
 }
 
-void BubbleSortStrings(char** sourceText, size_t size){
-    ASSERT(sourceText != NULL);
+void BubbleSortStrings(string* sourceStrText, size_t size){
+    ASSERT(sourceStrText != NULL);
 
     for (int first = 0; first < size; first++){
         for (int second = 0; second < size - 1; second++){
-            if (StringCompare(sourceText[second], sourceText[second + 1]) > 0){
-                SwapStringPointers(&sourceText[second], &sourceText[second + 1]);
+            if (StringCompare((sourceStrText[second]).pointer, (sourceStrText[second + 1]).pointer) > 0){
+                SwapStringPointers(&sourceStrText[second], &sourceStrText[second + 1]);
             }
         }
     }
@@ -120,28 +125,26 @@ void CopyContent(char** origin, char** output, size_t size){ //dont need
     }
 }
 
-void PrintText(const char** sourceText, size_t size){
-    ASSERT(sourceText != nullptr);
+void PrintText(string* sourceStrText, size_t numLines){
+    ASSERT(sourceStrText != nullptr);
 
-    printf("%c", sourceText[0][0]);
-    for (int i = 0; i < size; i++){
-        for (int j = 1; sourceText[i][j] != '\n' && sourceText[i][j] != EOF; j++){
-            printf("%c", sourceText[i][j]);
+    for (int i = 0; i < numLines; i++){
+        for (int j = 0; j < (sourceStrText[i]).length; j++){
+            printf("%c", ((sourceStrText[i]).pointer)[j]);
         }
-        printf("\n");
     }
 }
 
-void PrintTextDebug(const char** sourceText){
+void PrintTextDebug(const char** sourceText, size_t size){
     printf("%c", sourceText[0][0]);
-    for (int i = 0; i < STR_NUM; i++){
+    for (int i = 0; i < size; i++){
         for (int j = 1; sourceText[i][j] != '\n' && sourceText[i][j] != EOF; j++){
-            if (4 <= j && j <= 7){
+            if (0 <= j && j <= 50){
                 printf("(<%c>'%d')", tolower(sourceText[i][j]), tolower(sourceText[i][j]));
             } else
             printf("%c", sourceText[i][j]);
         }
-        printf("\n");
+        printf("\n\n");
     }
 }
 
@@ -153,6 +156,14 @@ void CountLines(char* buffer, size_t* numberLines){
         }
     }
     *numberLines = counter;
+}
+
+void ConvertPointersToStruct(char** arr, string* strArr, size_t size){
+    for (int i = 0; i < size; i++){
+        strArr[i].pointer = arr[i];
+        strArr[i].length = arr[i + 1] - arr[i];
+        printf("%lu ", strArr[i].length);
+    }
 }
 
 int main(){
@@ -182,12 +193,16 @@ int main(){
 
     SplitText((char*)bufferPointer, (char**)originalTextPointer); // разделение буфера по '\n'
 
+    string* strSortedPointer = (string*)calloc(numLines + 1, sizeof(string));
     char** textSortedPointer = (char**)calloc(numLines + 1, sizeof(char*)); // отсортированные указатели
     CopyContent(originalTextPointer, textSortedPointer, numLines + 1);
 
-    PrintText((const char**)textSortedPointer, numLines);
-    BubbleSortStrings(textSortedPointer, numLines);
-    PrintText((const char**)textSortedPointer, numLines);
+    ConvertPointersToStruct(originalTextPointer, strSortedPointer, numLines);
+
+    PrintText(strSortedPointer, numLines);
+    BubbleSortStrings(strSortedPointer, numLines);
+    PrintText(strSortedPointer, numLines);
+
 
     /*//debug
     //printf("%d\n", StringCompare(textSortedPointer[12], textSortedPointer[13]));
