@@ -14,7 +14,6 @@ typedef struct string{
     size_t length;
 } string;
 
-
 int MaxNum(long a, long b){
     if (a > b){
         return a;
@@ -27,12 +26,23 @@ int CharCompare(char firstChar, char secondChar){
     return tolower(firstChar) - tolower(secondChar);
 }
 
+int HasLetters(string str){
+    for (int i = 0; i < str.length; i++){
+        if (isalpha(str.pointer[i])){
+            return 1;
+        }
+    }
+    return 0;
+}
+
 int StringCompare(string firstString, string secondString){
     ASSERT(firstString.pointer != NULL && secondString.pointer != NULL);
 
-    if (firstString.length == 1){
+    if (!HasLetters(firstString) && !HasLetters(firstString)){
+        return 0;
+    } else if (!HasLetters(firstString)){
         return -1;
-    } else if (secondString.length == 1){
+    } else if (!HasLetters(secondString)){
         return 1;
     }
 
@@ -205,6 +215,6 @@ int main(){
     PrintOriginalText(strSortedPointer, numLines);
     BubbleSortStrings(strSortedPointer, numLines);
     PrintText(strSortedPointer, numLines);
-    
+
     return 0;
 }
