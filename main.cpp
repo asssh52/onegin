@@ -8,7 +8,7 @@
 #define ASSERT(x) if (!(x)) { printf(COLOR_RED "\nThe programm has been aborted.\n"\
                                                "Line %d of file %s, function %s.\n\n" COLOR_RESET,\
                                             __LINE__, __FILE__, __func__); abort();}
-                                            
+
 typedef struct string{
     char* pointer;
     size_t length;
@@ -205,17 +205,6 @@ int main(){
     PrintOriginalText(strSortedPointer, numLines);
     BubbleSortStrings(strSortedPointer, numLines);
     PrintText(strSortedPointer, numLines);
-
-
-    /*//debug
-    //printf("%d\n", StringCompare(textSortedPointer[12], textSortedPointer[13]));
-
-    char * first =  "     ``My uncle -- high ideals inspire him;";
-    char * second = "     \"When will the devil come for you?\"''";
-    printf("%d", StringCompareDebug(textSortedPointer[0], textSortedPointer[13]));
-
-
-
-    //debug*/
+    
     return 0;
 }
