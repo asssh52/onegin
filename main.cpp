@@ -8,78 +8,50 @@
 #define ASSERT(x) if (!(x)) { printf(COLOR_RED "\nThe programm has been aborted.\n"\
                                                "Line %d of file %s, function %s.\n\n" COLOR_RESET,\
                                             __LINE__, __FILE__, __func__); abort();}
-enum sizes{
-    STR_LENGTH = 60,
-    STR_NUM = 14,
-    FILE_SIZE = 600
-};
-
+                                            
 typedef struct string{
     char* pointer;
     size_t length;
 } string;
 
 
-
+int MaxNum(long a, long b){
+    if (a > b){
+        return a;
+    } else {
+        return b;
+    }
+}
 
 int CharCompare(char firstChar, char secondChar){
     return tolower(firstChar) - tolower(secondChar);
 }
 
-int StringCompare(const char* firstString, const char* secondString){
-    ASSERT(firstString != NULL && secondString != NULL);
+int StringCompare(string firstString, string secondString){
+    ASSERT(firstString.pointer != NULL && secondString.pointer != NULL);
 
-    for (int i = 0, j = 0; i < STR_LENGTH; i++, j++){ // size избыточен?
-        while(ispunct(firstString[i]) || isspace(firstString[i])){
+    if (firstString.length == 1){
+        return -1;
+    } else if (secondString.length == 1){
+        return 1;
+    }
+
+    for (int i = 0, j = 0; i < firstString.length && i < secondString.length; i++, j++){ // size избыточен?
+        while(ispunct(firstString.pointer[i]) || isspace(firstString.pointer[i])){
             i++;
         }
-        while(ispunct(secondString[j]) || isspace(secondString[j])){
+        while(ispunct(secondString.pointer[j]) || isspace(secondString.pointer[j])){
             j++;
         }
 
-        if (CharCompare(firstString[i], secondString[j]) > 0){
+        if (CharCompare(firstString.pointer[i], secondString.pointer[j]) > 0){
                 return 1; // first bigger
         }
-        else if (CharCompare(firstString[i], secondString[j]) < 0) {
+        else if (CharCompare(firstString.pointer[i], secondString.pointer[j]) < 0) {
                 return -1; // second bigger
         }
     }
     return 0;
-}
-
-int StringCompareDebug(const char* firstString, const char* secondString){
-    ASSERT(firstString != NULL && secondString != NULL);
-
-    for (int i = 0, j = 0; i < STR_LENGTH; i++, j++){
-        while(ispunct(firstString[i]) || isspace(firstString[i])){
-            i++;
-        }
-        while(ispunct(secondString[j]) || isspace(secondString[j])){
-            j++;
-        }
-
-        if (CharCompare(firstString[i], secondString[j]) > 0){
-            printf("i:%d ch:%c(%d) \nj:%d ch:%c(%d)", i, firstString[i], firstString[i], j, secondString[j], secondString[j]);
-            return 1; // first bigger
-        }
-        else if (CharCompare(firstString[i], secondString[j]) < 0) {
-                printf("i:%d ch:%c(%d) \nj:%d ch:%c(%d)", i, firstString[i], firstString[i], j, secondString[j], secondString[j]);
-                return -1; // second bigger
-        }
-    }
-    return 0;
-}
-
-void SwapStrings(char* firstString, char* secondString){ // dont need
-    ASSERT(firstString != NULL && secondString != NULL);
-    char temp;
-
-    for (int i = 0; i < STR_LENGTH; i++){
-        temp = firstString[i];
-        firstString[i] = secondString[i];
-        secondString[i] = temp;
-    }
-
 }
 
 void SwapStringPointers(string* firstString, string* secondString){
@@ -96,7 +68,7 @@ void BubbleSortStrings(string* sourceStrText, size_t size){
 
     for (int first = 0; first < size; first++){
         for (int second = 0; second < size - 1; second++){
-            if (StringCompare((sourceStrText[second]).pointer, (sourceStrText[second + 1]).pointer) > 0){
+            if (StringCompare(sourceStrText[second], sourceStrText[second + 1]) > 0){
                 SwapStringPointers(&sourceStrText[second], &sourceStrText[second + 1]);
             }
         }
@@ -117,7 +89,7 @@ void SplitText(char* buffer, char** storage){
     }
 }
 
-void CopyContent(char** origin, char** output, size_t size){ //dont need
+void CopyContent(char** origin, char** output, size_t size){
     ASSERT(origin != nullptr && output != nullptr)
 
     for (int i = 0; i < size; i++){
@@ -129,22 +101,53 @@ void PrintText(string* sourceStrText, size_t numLines){
     ASSERT(sourceStrText != nullptr);
 
     for (int i = 0; i < numLines; i++){
-        for (int j = 0; j < (sourceStrText[i]).length; j++){
-            printf("%c", ((sourceStrText[i]).pointer)[j]);
+        size_t j = 1;
+        printf("line:%d ", i + 1);
+        while (isspace(((sourceStrText[i]).pointer)[j])){
+                j++;
+            }
+        for (; j < (sourceStrText[i]).length; j++){
+            if (((sourceStrText[i]).pointer)[j] != '\n'){
+                printf("%c", ((sourceStrText[i]).pointer)[j]);
+            }
         }
+        printf("\n");
     }
 }
 
-void PrintTextDebug(const char** sourceText, size_t size){
-    printf("%c", sourceText[0][0]);
-    for (int i = 0; i < size; i++){
-        for (int j = 1; sourceText[i][j] != '\n' && sourceText[i][j] != EOF; j++){
-            if (0 <= j && j <= 50){
-                printf("(<%c>'%d')", tolower(sourceText[i][j]), tolower(sourceText[i][j]));
-            } else
-            printf("%c", sourceText[i][j]);
+void PrintOriginalText(string* sourceStrText, size_t numLines){
+    ASSERT(sourceStrText != nullptr);
+
+    for (int i = 0; i < numLines; i++){
+        size_t j = 0;
+        for (; j < (sourceStrText[i]).length; j++){
+            if (((sourceStrText[i]).pointer)[j] != '\n'){
+                printf("%c", ((sourceStrText[i]).pointer)[j]);
+            }
         }
-        printf("\n\n");
+        printf("\n");
+    }
+}
+
+void PrintTextDebug(string* sourceStrText, size_t numLines){
+    ASSERT(sourceStrText != nullptr);
+
+    for (int i = 0; i < numLines; i++){
+        size_t j = 1;
+        printf("line:%d ", i + 1);
+        while (isspace(((sourceStrText[i]).pointer)[j])){
+                j++;
+            }
+        for (; j < (sourceStrText[i]).length; j++){
+            if (((sourceStrText[i]).pointer)[j] != '\n'){
+                if ( 3 < j && j < 11){
+                    printf("('%c'<%d>)", ((sourceStrText[i]).pointer)[j], ((sourceStrText[i]).pointer)[j]);
+                } else {
+                    printf("%c", ((sourceStrText[i]).pointer)[j]);
+                }
+            }
+        }
+        printf("\n");
     }
 }
 
@@ -199,7 +202,7 @@ int main(){
 
     ConvertPointersToStruct(originalTextPointer, strSortedPointer, numLines);
 
-    PrintText(strSortedPointer, numLines);
+    PrintOriginalText(strSortedPointer, numLines);
     BubbleSortStrings(strSortedPointer, numLines);
     PrintText(strSortedPointer, numLines);
 
