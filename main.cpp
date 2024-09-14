@@ -3,7 +3,7 @@
 #include <ctype.h>
 #include <sys/stat.h>
 
-#define COLOR_RESET         "\x1b[0m"
+#define COLOR_RESET         "\x1b[0m" // TODO: colours.h???
 #define COLOR_RED          "\x1b[31m"
 #define ASSERT(x) if (!(x)) { printf(COLOR_RED "\nThe programm has been aborted.\n"\
                                                "Line %d of file %s, function %s.\n\n" COLOR_RESET,\
@@ -14,19 +14,13 @@ typedef struct string{
     size_t length;
 } string;
 
-int MaxNum(long a, long b){
-    if (a > b){
-        return a;
-    } else {
-        return b;
-    }
-}
+typedef int (*cmpfnc)(string, string);
 
 int CharCompare(char firstChar, char secondChar){
     return tolower(firstChar) - tolower(secondChar);
 }
 
-int HasLetters(string str){
+int HasLetters(string str){ // NOTE: is empty str
     for (int i = 0; i < str.length; i++){
         if (isalpha(str.pointer[i])){
             return 1;
@@ -39,11 +33,11 @@ int StringCompare(string firstString, string secondString){
     ASSERT(firstString.pointer != NULL && secondString.pointer != NULL);
 
     if (!HasLetters(firstString) && !HasLetters(firstString)){
-        return 0;
+        return  0;
     } else if (!HasLetters(firstString)){
         return -1;
     } else if (!HasLetters(secondString)){
-        return 1;
+        return  1;
     }
 
     for (int i = 0, j = 0; i < firstString.length && i < secondString.length; i++, j++){ // size избыточен?
@@ -64,15 +58,15 @@ int StringCompare(string firstString, string secondString){
     return 0;
 }
 
-int StringCompareReversed(string firstString, string secondString){
+int StringCompareReversed(string firstString, string secondString){ // NOTE: ptr
     ASSERT(firstString.pointer != NULL && secondString.pointer != NULL);
 
     if (!HasLetters(firstString) && !HasLetters(firstString)){
-        return 0;
+        return  0;
     } else if (!HasLetters(firstString)){
         return -1;
     } else if (!HasLetters(secondString)){
-        return 1;
+        return  1;
     }
 
     for (int i = firstString.length, j = secondString.length; i > 0 && j > 0; i--, j--){ // size избыточен?
@@ -102,19 +96,19 @@ void SwapStringPointers(string* firstString, string* secondString){
     *secondString = temp;
 }
 
-void BubbleSortStrings(string* sourceStrText, size_t size){
+void BubbleSortStrings(string* sourceStrText, size_t size, cmpfnc CompareFunction){
     ASSERT(sourceStrText != NULL);
 
     for (int first = 0; first < size; first++){
         for (int second = 0; second < size - 1; second++){
-            if (StringCompare(sourceStrText[second], sourceStrText[second + 1]) > 0){
+            if (CompareFunction(sourceStrText[second], sourceStrText[second + 1]) > 0){
                 SwapStringPointers(&sourceStrText[second], &sourceStrText[second + 1]);
             }
         }
     }
 }
 
-void BubbleInverseSortStrings(string* sourceStrText, size_t size){
+void BubbleInverseSortStrings(string* sourceStrText, size_t size){ // TODO: ptr to function comparator
     ASSERT(sourceStrText != NULL);
 
     for (int first = 0; first < size; first++){
@@ -126,25 +120,18 @@ void BubbleInverseSortStrings(string* sourceStrText, size_t size){
     }
 }
 
-void SplitText(char* buffer, char** storage){
+void SplitText(char* buffer, string* storage){
     ASSERT(buffer != nullptr && storage != nullptr)
 
     int lineCounter = 0;
-    *storage = buffer;
+    storage[0].pointer = buffer;
 
     for (int i = 0; buffer[i] != EOF; i++){
         if (buffer[i] == '\n'){
             lineCounter++;
-            *(storage + lineCounter) = (char*)((size_t)buffer + i);
+            storage[lineCounter].pointer = (char*)((size_t)buffer + i);
+            storage[lineCounter - 1].length = storage[lineCounter].pointer - storage[lineCounter - 1].pointer;
         }
-    }
-}
-
-void CopyContent(char** origin, char** output, size_t size){
-    ASSERT(origin != nullptr && output != nullptr)
-
-    for (int i = 0; i < size; i++){
-        output[i] = origin[i];
     }
 }
 
@@ -153,7 +140,7 @@ void PrintText(string* sourceStrText, size_t numLines, FILE* outputLink){
 
     for (int i = 0; i < numLines; i++){
         size_t j = 1;
-        fprintf(outputLink, "line:%d ", i + 1);
+        //fprintf(outputLink, "line:%d ", i + 1);
         while (isspace(((sourceStrText[i]).pointer)[j])){
                 j++;
             }
@@ -194,28 +181,6 @@ void PrintOriginalText(string* sourceStrText, size_t numLines, FILE* outputLink)
     }
 }
 
-void PrintTextDebug(string* sourceStrText, size_t numLines){
-    ASSERT(sourceStrText != nullptr);
-
-    for (int i = 0; i < numLines; i++){
-        size_t j = 1;
-        printf("line:%d ", i + 1);
-        while (isspace(((sourceStrText[i]).pointer)[j])){
-                j++;
-            }
-        for (; j < (sourceStrText[i]).length; j++){
-            if (((sourceStrText[i]).pointer)[j] != '\n'){
-                if ( 3 < j && j < 11){
-                    printf("('%c'<%d>)", ((sourceStrText[i]).pointer)[j], ((sourceStrText[i]).pointer)[j]);
-                } else {
-                    printf("%c", ((sourceStrText[i]).pointer)[j]);
-                }
-            }
-        }
-        printf("\n");
-    }
-}
-
 void CountLines(char* buffer, size_t* numberLines){
     size_t counter = 0;
     for (int i = 0; buffer[i] != EOF; i++){
@@ -226,64 +191,58 @@ void CountLines(char* buffer, size_t* numberLines){
     *numberLines = counter;
 }
 
-void ConvertPointersToStruct(char** arr, string* strArr, size_t size){
+size_t GetFileSize(const char* source){
+    struct stat st;
+    stat(source, &st);
+    size_t fileSize = st.st_size;
+
+    return fileSize;
+}
+
+void GetFileContent(void* bufferPointer, size_t sizeOfElem, size_t fileSize, FILE* sourceFileLink){
+    ASSERT(sourceFileLink != NULL && bufferPointer != NULL);
+    fread(bufferPointer, sizeof(char), fileSize, sourceFileLink);
+    ((char*)bufferPointer)[fileSize] = -1;
+}
+
+void SortAndOutput(string* strPointer, size_t numLines, FILE* stream){
+    PrintOriginalText(strPointer, numLines, stream);
+
+    PrintIntro(stream);
+    BubbleSortStrings(strPointer, numLines, StringCompare);
+    PrintText(strPointer, numLines, stream);
+
+    PrintOutro(stream);
+    BubbleSortStrings(strPointer, numLines, StringCompareReversed);
+    PrintText(strPointer, numLines, stream);
+}
+
+void SwapItems(void* first, void* second, size_t size){
+    ASSERT(first != nullptr && second != nullptr);
+    char temp = 0;
+
     for (int i = 0; i < size; i++){
-        strArr[i].pointer = arr[i];
-        strArr[i].length = arr[i + 1] - arr[i];
-        printf("%lu ", strArr[i].length);
+        temp = *((char*)first + i);
+               *((char*)first + i) = *((char*)second + i);
+                                     *((char*)second + i) = temp;
     }
 }
 
-
 int main(){
+    FILE* sourceFileLink = fopen("onegin.txt", "r");
+    size_t fileSize = GetFileSize("onegin.txt");
 
-    const char* sourceFile = "onegin.txt";
-    FILE* sourceFileLink = fopen(sourceFile, "r");
+    void* bufferPointer = calloc(fileSize, sizeof(char));                   // TODO: CTOR
+    GetFileContent(bufferPointer, sizeof(char), fileSize, sourceFileLink);
+
     size_t numLines = 0;
+    CountLines((char*)bufferPointer, &numLines);
 
-    struct stat st;
-    stat(sourceFile, &st);
-    size_t fileSize = st.st_size;
+    string* strPointer = (string*)calloc(numLines + 1, sizeof(string));
+    SplitText((char*)bufferPointer, (string*)strPointer);
 
-    printf("%lu\n", fileSize);                                                      // как узнать количество строк в файле?
-
-    void* bufferPointer = calloc(fileSize, sizeof(char));                           //выделение памяти для буфера
-
-    ASSERT(sourceFileLink != NULL && bufferPointer != NULL);
-    fread(bufferPointer, sizeof(char), fileSize, sourceFileLink);                   // чтение в буфер
-    ((char*)bufferPointer)[fileSize] = -1;                                          //фиксит countLines
-
-    CountLines((char*)bufferPointer, &numLines); // счёт '\n'
-    printf("%lu\n", numLines);
-
-    char** originalTextPointer = (char**)calloc(numLines + 1, sizeof(char*));       // (char**)!=(сhar*)???
-
-
-
-    SplitText((char*)bufferPointer, (char**)originalTextPointer);                   // разделение буфера по '\n'
-
-    string* strSortedPointer = (string*)calloc(numLines + 1, sizeof(string));
-    string* strInverseSortedPointer = (string*)calloc(numLines + 1, sizeof(string));
-    string* strOriginalPointer = (string*)calloc(numLines + 1, sizeof(string));
-
-    ConvertPointersToStruct(originalTextPointer, strSortedPointer, numLines);
-    ConvertPointersToStruct(originalTextPointer, strOriginalPointer, numLines);
-    ConvertPointersToStruct(originalTextPointer, strInverseSortedPointer, numLines);
-
-    PrintOriginalText(strOriginalPointer, numLines, stdout);
-    BubbleSortStrings(strSortedPointer, numLines);
-    BubbleInverseSortStrings(strInverseSortedPointer, numLines);
-    PrintText(strSortedPointer, numLines, stdout);
-    PrintText(strInverseSortedPointer, numLines, stdout);
-
-    const char* outputFile = "out.txt";
-    FILE* outputFileLink = fopen(outputFile, "w");
-
-    PrintOriginalText(strOriginalPointer, numLines, outputFileLink);
-    PrintIntro(outputFileLink);
-    PrintText(strSortedPointer, numLines, outputFileLink);
-    PrintOutro(outputFileLink);
-    PrintText(strInverseSortedPointer, numLines, outputFileLink);
+    FILE* outputFileLink = fopen("out.txt", "w");
+    SortAndOutput(strPointer, numLines, outputFileLink);
 
     fclose(sourceFileLink);
     fclose(outputFileLink);
