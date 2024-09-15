@@ -2,19 +2,13 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <sys/stat.h>
-
-#define COLOR_RESET         "\x1b[0m" // TODO: colours.h???
-#define COLOR_RED          "\x1b[31m"
-#define ASSERT(x) if (!(x)) { printf(COLOR_RED "\nThe programm has been aborted.\n"\
-                                               "Line %d of file %s, function %s.\n\n" COLOR_RESET,\
-                                            __LINE__, __FILE__, __func__); abort();}
+#include "sorting.hpp"
+#include "myassert.hpp"
 
 typedef struct string{
     char* pointer;
     size_t length;
 } string;
-
-typedef int (*cmpfnc)(string, string);
 
 int CharCompare(char firstChar, char secondChar){
     return tolower(firstChar) - tolower(secondChar);
@@ -29,8 +23,12 @@ int HasLetters(string str){ // NOTE: is empty str
     return 0;
 }
 
-int StringCompare(string firstString, string secondString){
-    ASSERT(firstString.pointer != NULL && secondString.pointer != NULL);
+int StringCompare(void* firstStringPointer, void* secondStringPointer){
+    ASSERT(firstStringPointer != NULL && secondStringPointer != NULL);
+    string firstString = *(string*)firstStringPointer;
+    string secondString = *(string*)secondStringPointer;
+
+    ASSERT((firstString.pointer != NULL) && (secondString.pointer != NULL));
 
     if (!HasLetters(firstString) && !HasLetters(firstString)){
         return  0;
@@ -58,8 +56,12 @@ int StringCompare(string firstString, string secondString){
     return 0;
 }
 
-int StringCompareReversed(string firstString, string secondString){ // NOTE: ptr
-    ASSERT(firstString.pointer != NULL && secondString.pointer != NULL);
+int StringCompareReversed(void* firstStringPointer, void* secondStringPointer){ // NOTE: ptr
+    ASSERT(firstStringPointer != NULL && secondStringPointer != NULL);
+    string firstString = *(string*)firstStringPointer;
+    string secondString = *(string*)secondStringPointer;
+
+    ASSERT((firstString.pointer != NULL) && (secondString.pointer != NULL));
 
     if (!HasLetters(firstString) && !HasLetters(firstString)){
         return  0;
@@ -85,39 +87,6 @@ int StringCompareReversed(string firstString, string secondString){ // NOTE: ptr
         }
     }
     return 0;
-}
-
-void SwapStringPointers(string* firstString, string* secondString){
-    ASSERT(firstString != NULL && secondString != NULL);
-    string temp = {0,0};
-
-    temp = *firstString;
-    *firstString = *secondString;
-    *secondString = temp;
-}
-
-void BubbleSortStrings(string* sourceStrText, size_t size, cmpfnc CompareFunction){
-    ASSERT(sourceStrText != NULL);
-
-    for (int first = 0; first < size; first++){
-        for (int second = 0; second < size - 1; second++){
-            if (CompareFunction(sourceStrText[second], sourceStrText[second + 1]) > 0){
-                SwapStringPointers(&sourceStrText[second], &sourceStrText[second + 1]);
-            }
-        }
-    }
-}
-
-void BubbleInverseSortStrings(string* sourceStrText, size_t size){ // TODO: ptr to function comparator
-    ASSERT(sourceStrText != NULL);
-
-    for (int first = 0; first < size; first++){
-        for (int second = 0; second < size - 1; second++){
-            if (StringCompareReversed(sourceStrText[second], sourceStrText[second + 1]) > 0){
-                SwapStringPointers(&sourceStrText[second], &sourceStrText[second + 1]);
-            }
-        }
-    }
 }
 
 void SplitText(char* buffer, string* storage){
@@ -209,30 +178,20 @@ void SortAndOutput(string* strPointer, size_t numLines, FILE* stream){
     PrintOriginalText(strPointer, numLines, stream);
 
     PrintIntro(stream);
-    BubbleSortStrings(strPointer, numLines, StringCompare);
+    QuickSort(strPointer, numLines, sizeof(string), StringCompare);
     PrintText(strPointer, numLines, stream);
 
     PrintOutro(stream);
-    BubbleSortStrings(strPointer, numLines, StringCompareReversed);
+    QuickSort(strPointer, numLines, sizeof(string), StringCompareReversed);
     PrintText(strPointer, numLines, stream);
-}
-
-void SwapItems(void* first, void* second, size_t size){
-    ASSERT(first != nullptr && second != nullptr);
-    char temp = 0;
-
-    for (int i = 0; i < size; i++){
-        temp = *((char*)first + i);
-               *((char*)first + i) = *((char*)second + i);
-                                     *((char*)second + i) = temp;
-    }
+    printf(COLOR_GREEN "sorted successfully\n" COLOR_RESET);
 }
 
 int main(){
     FILE* sourceFileLink = fopen("onegin.txt", "r");
     size_t fileSize = GetFileSize("onegin.txt");
 
-    void* bufferPointer = calloc(fileSize, sizeof(char));                   // TODO: CTOR
+    void* bufferPointer = calloc(fileSize, sizeof(char));
     GetFileContent(bufferPointer, sizeof(char), fileSize, sourceFileLink);
 
     size_t numLines = 0;
@@ -244,7 +203,7 @@ int main(){
     FILE* outputFileLink = fopen("out.txt", "w");
     SortAndOutput(strPointer, numLines, outputFileLink);
 
-    fclose(sourceFileLink);
-    fclose(outputFileLink);
+    fclose(sourceFileLink); fclose(outputFileLink);
+    free(bufferPointer); free(strPointer);
     return 0;
 }

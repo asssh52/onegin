@@ -16,10 +16,14 @@ CXXFLAGS = -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-l
 CXX = clang++
 all: main
 
-main: main.o onegin.txt
-	$(CXX) main.o $(CXXFLAGS) -o main && clear && ./main
+main: main.o sorting.o onegin.txt
+	$(CXX) main.o sorting.o $(CXXFLAGS) -o main && clear && ./main
 
-main.o: main.cpp
+main.o: main.cpp myassert.hpp
 	$(CXX) -c main.cpp
+
+sorting.o: sorting.cpp sorting.hpp myassert.hpp
+	$(CXX) -c sorting.cpp
+
 clean:
 	rm -f main.o main
