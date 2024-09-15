@@ -31,6 +31,9 @@ int StringCompare(void* firstStringPointer, void* secondStringPointer){
     ASSERT((firstString.pointer != NULL) && (secondString.pointer != NULL));
 
     if (!HasLetters(firstString) && !HasLetters(firstString)){
+        if (firstString.length > secondString.length){
+            return 1;
+        }
         return  0;
     } else if (!HasLetters(firstString)){
         return -1;
@@ -38,7 +41,7 @@ int StringCompare(void* firstStringPointer, void* secondStringPointer){
         return  1;
     }
 
-    for (int i = 0, j = 0; i < firstString.length && i < secondString.length; i++, j++){ // size избыточен?
+    for (int i = 0, j = 0; i < firstString.length && i < secondString.length; i++, j++){
         while(ispunct(firstString.pointer[i]) || isspace(firstString.pointer[i])){
             i++;
         }
@@ -53,10 +56,13 @@ int StringCompare(void* firstStringPointer, void* secondStringPointer){
                 return -1; // second bigger
         }
     }
+    if (firstString.length > secondString.length){
+        return 1;
+    }
     return 0;
 }
 
-int StringCompareReversed(void* firstStringPointer, void* secondStringPointer){ // NOTE: ptr
+int StringCompareReversed(void* firstStringPointer, void* secondStringPointer){
     ASSERT(firstStringPointer != NULL && secondStringPointer != NULL);
     string firstString = *(string*)firstStringPointer;
     string secondString = *(string*)secondStringPointer;
@@ -71,7 +77,7 @@ int StringCompareReversed(void* firstStringPointer, void* secondStringPointer){ 
         return  1;
     }
 
-    for (int i = firstString.length, j = secondString.length; i > 0 && j > 0; i--, j--){ // size избыточен?
+    for (int i = firstString.length, j = secondString.length; i > 0 && j > 0; i--, j--){
         while(ispunct(firstString.pointer[i]) || isspace(firstString.pointer[i])){
             i--;
         }
@@ -85,6 +91,9 @@ int StringCompareReversed(void* firstStringPointer, void* secondStringPointer){ 
         else if (CharCompare(firstString.pointer[i], secondString.pointer[j]) < 0) {
                 return -1; // second bigger
         }
+    }
+    if (firstString.length > secondString.length){
+        return 1;
     }
     return 0;
 }
@@ -116,6 +125,30 @@ void PrintText(string* sourceStrText, size_t numLines, FILE* outputLink){
         for (; j < (sourceStrText[i]).length; j++){
             if (((sourceStrText[i]).pointer)[j] != '\n'){
                 fprintf(outputLink, "%c", ((sourceStrText[i]).pointer)[j]);
+            }
+        }
+        fprintf(outputLink, "\n");
+    }
+}
+
+void PrintTextDebug(string* sourceStrText, size_t numLines, FILE* outputLink){
+    ASSERT(sourceStrText != nullptr && outputLink != nullptr);
+
+    for (int i = 0; i < numLines; i++){
+        size_t j = 1;
+        //fprintf(outputLink, "line:%d ", i + 1);
+        while (isspace(((sourceStrText[i]).pointer)[j])){
+                j++;
+            }
+        for (; j < (sourceStrText[i]).length; j++){
+            if (j <= 4){
+                if (((sourceStrText[i]).pointer)[j] != '\n'){
+                    fprintf(outputLink, "<%c(%d)>", ((sourceStrText[i]).pointer)[j], ((sourceStrText[i]).pointer)[j]);
+                }
+            } else {
+                if (((sourceStrText[i]).pointer)[j] != '\n'){
+                    fprintf(outputLink, "%c", ((sourceStrText[i]).pointer)[j]);
+                }
             }
         }
         fprintf(outputLink, "\n");
