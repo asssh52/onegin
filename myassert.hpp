@@ -1,5 +1,6 @@
-#ifndef MYASSERT_HPP
-#define MYASSERT_HPP
+#pragma once
+
+#include <stdlib.h>
 
 #define COLOR_RESET         "\x1b[0m"
 #define COLOR_RED          "\x1b[31m"
@@ -9,4 +10,3 @@
                                                "Line %d of file %s, function %s.\n\n" COLOR_RESET,\
                                             __LINE__, __FILE__, __func__); abort();}
 
-#endif
