@@ -5,12 +5,11 @@
 
 void SwapItems(void* first, void* second, size_t sizeElem){
     ASSERT(first != nullptr && second != nullptr);
-
-    char temp = 0;
+    
     for (int i = 0; i < sizeElem; i++){
-        temp = *((char*)first + i);
-               *((char*)first + i) = *((char*)second + i);
-                                                *((char*)second + i) = temp;
+        char temp = *((char*)first + i);
+                    *((char*)first + i) = *((char*)second + i);
+                                          *((char*)second + i) = temp;
     }
 }
 

@@ -211,16 +211,22 @@ void SortAndOutput(string* strPointer, size_t numLines, FILE* stream){
     PrintOriginalText(strPointer, numLines, stream);
 
     PrintIntro(stream);
+
     QuickSort(strPointer, numLines, sizeof(string), StringCompare);
     PrintText(strPointer, numLines, stream);
 
     PrintOutro(stream);
+
     QuickSort(strPointer, numLines, sizeof(string), StringCompareReversed);
     PrintText(strPointer, numLines, stream);
+
     printf(COLOR_GREEN "sorted successfully\n" COLOR_RESET);
 }
 
-int main(){
+int main(int argc, const char* argv[]){
+    const char* filename_in  = (argc == 2)? argv[1] : "onegin.txt";
+    const char* filename_out = (argc == 3)? argv[2] : "out.txt";
+
     FILE* sourceFileLink = fopen("onegin.txt", "r");
     size_t fileSize = GetFileSize("onegin.txt");
 
@@ -236,7 +242,9 @@ int main(){
     FILE* outputFileLink = fopen("out.txt", "w");
     SortAndOutput(strPointer, numLines, outputFileLink);
 
-    fclose(sourceFileLink); fclose(outputFileLink);
-    free(bufferPointer); free(strPointer);
+    fclose(sourceFileLink);
+    fclose(outputFileLink);
+    free(bufferPointer);
+    free(strPointer);
     return 0;
 }
