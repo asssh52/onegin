@@ -10,11 +10,18 @@ typedef struct string{
     size_t length;
 } string;
 
+typedef struct structuredText{
+    string* strPointer;
+    size_t numLines;
+    void* bufferPointer;
+    FILE* filePointer;
+}structuredText;
+
 int CharCompare(char firstChar, char secondChar){
     return tolower(firstChar) - tolower(secondChar);
 }
 
-int HasLetters(string str){ // NOTE: is empty str
+int HasLetters(string str){
     for (int i = 0; i < str.length; i++){
         if (isalpha(str.pointer[i])){
             return 1;
@@ -223,12 +230,9 @@ void SortAndOutput(string* strPointer, size_t numLines, FILE* stream){
     printf(COLOR_GREEN "sorted successfully\n" COLOR_RESET);
 }
 
-int main(int argc, const char* argv[]){
-    const char* filename_in  = (argc == 2)? argv[1] : "onegin.txt";
-    const char* filename_out = (argc == 3)? argv[2] : "out.txt";
-
-    FILE* sourceFileLink = fopen("onegin.txt", "r");
-    size_t fileSize = GetFileSize("onegin.txt");
+structuredText StructureText(const char* filenameIn){
+    FILE* sourceFileLink = fopen(filenameIn, "r");
+    size_t fileSize = GetFileSize(filenameIn);
 
     void* bufferPointer = calloc(fileSize, sizeof(char));
     GetFileContent(bufferPointer, sizeof(char), fileSize, sourceFileLink);
@@ -239,12 +243,57 @@ int main(int argc, const char* argv[]){
     string* strPointer = (string*)calloc(numLines + 1, sizeof(string));
     SplitText((char*)bufferPointer, (string*)strPointer);
 
-    FILE* outputFileLink = fopen("out.txt", "w");
-    SortAndOutput(strPointer, numLines, outputFileLink);
+    structuredText outputText = {};
+    outputText.numLines = numLines;
+    outputText.strPointer = strPointer;
+    outputText.bufferPointer = bufferPointer;
+    outputText.filePointer = sourceFileLink;
 
-    fclose(sourceFileLink);
-    fclose(outputFileLink);
-    free(bufferPointer);
-    free(strPointer);
+    return outputText;
+}
+
+void ProcessText(structuredText textIn, const char* filenameOut){
+    FILE* stream = fopen(filenameOut, "w");
+    string* strPointer = textIn.strPointer;
+    size_t numLines = textIn.numLines;
+
+    PrintOriginalText(strPointer, numLines, stream);
+
+    PrintIntro(stream);
+
+    QuickSort(strPointer, numLines, sizeof(string), StringCompare);
+    PrintText(strPointer, numLines, stream);
+
+    PrintOutro(stream);
+
+    QuickSort(strPointer, numLines, sizeof(string), StringCompareReversed);
+    PrintText(strPointer, numLines, stream);
+
+    printf(COLOR_GREEN "sorted successfully\n" COLOR_RESET);
+
+    if (stream != stdout){
+        fclose(stream);
+    }
+}
+
+void FreeAndClose(structuredText outputText){
+    free(outputText.strPointer);
+    free(outputText.bufferPointer);
+    fclose(outputText.filePointer);
+}
+
+
+int main(int argc, const char* argv[]){
+    const char* filenameIn  = (argc == 2)? argv[1] : "onegin.txt";
+    const char* filenameOut = (argc == 3)? argv[2] : "out_onegin.txt";
+
+    structuredText onegin = StructureText(filenameIn);
+    ProcessText(onegin, filenameOut);
+
+    structuredText hamlet = StructureText("hamlet.txt");
+    ProcessText(hamlet, "out_hamlet.txt");
+
+    FreeAndClose(onegin);
+    FreeAndClose(hamlet);
     return 0;
 }
