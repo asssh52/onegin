@@ -14,5 +14,5 @@ typedef struct structuredText{
     FILE* filePointer;
 }structuredText;
 
-structuredText StructureText(const char* filenameIn);
-void FreeAndClose(structuredText outputText);
+structuredText StructureText (const char* filenameIn);
+void           FreeAndClose  (structuredText outputText);
